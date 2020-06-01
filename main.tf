@@ -16,6 +16,9 @@ variable "vpc_enable_dns_hostnames" {
 variable "vpc_name" {
   default = "titus"
 }
+variable "public_cidr" {
+  default = "192.168.1.0/24"
+}
 
 // specify the cloud tech provider i.e. aws. azure
 provider "aws" {
@@ -32,3 +35,26 @@ resource "aws_vpc" "main_vpc" {
     Name = var.vpc_name
   }
 }
+
+resource "aws_subnet" "public" {
+  vpc_id     = aws_vpc.main_vpc.id
+  cidr_block = var.public_cidr
+
+  tags = {
+    Name = "${var.vpc_name}-net-public"
+  }
+}
+
+output "vpc_id" {
+  value = aws_vpc.main_vpc.id
+}
+output "vpc_arn" {
+  value = aws_vpc.main_vpc.arn
+}
+output "vpc_cidr" {
+  value = aws_vpc.main_vpc.cidr_block
+}
+output "subnet_public_id" {
+  value = aws_subnet.public.id
+}
+

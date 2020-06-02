@@ -19,6 +19,12 @@ variable "vpc_name" {
 variable "public_cidr" {
   default = "192.168.1.0/24"
 }
+variable "ami_id" {
+  default = "ami-0330ffc12d7224386"
+}
+variable "instance_type" {
+  default = "t2.micro"
+}
 
 // specify the cloud tech provider i.e. aws. azure
 provider "aws" {
@@ -45,6 +51,65 @@ resource "aws_subnet" "public" {
   }
 }
 
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  tags = {
+    Name =  "${var.vpc_name}-IGW"
+  }
+}
+
+resource "aws_route" "route-public" {
+  route_table_id         = aws_vpc.main_vpc.main_route_table_id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_vpc.main_vpc.main_route_table_id
+}
+
+resource "aws_security_group" "ec2-sg" {
+  name        = "security-group"
+  description = "allow inbound access to our public EC2"
+  vpc_id      = aws_vpc.main_vpc.id
+
+  ingress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "public-ec2" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.public.id
+  vpc_security_group_ids = [ aws_security_group.ec2-sg.id ]
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "ec2-main"
+  }
+
+  depends_on = [ aws_vpc.main_vpc, aws_internet_gateway.igw ]
+}
+
+output "ec2-public-ip" {
+  value = aws_instance.public-ec2.public_ip
+}
+output "igw_id" {
+  value = aws_internet_gateway.igw.id
+}
 output "vpc_id" {
   value = aws_vpc.main_vpc.id
 }

@@ -1,30 +1,3 @@
-variable "aws_region" {
-  default = "eu-west-2"
-}
-variable "vpc_cidr" {
-  default = "192.168.0.0/16"
-}
-variable "vpc_tenancy" {
-  default = "default"
-}
-variable "vpc_enable_dns_support" {
-  default = true
-}
-variable "vpc_enable_dns_hostnames" {
-  default = true
-}
-variable "vpc_name" {
-  default = "titus"
-}
-variable "public_cidr" {
-  default = "192.168.1.0/24"
-}
-variable "ami_id" {
-  default = "ami-0330ffc12d7224386"
-}
-variable "instance_type" {
-  default = "t2.micro"
-}
 
 // specify the cloud tech provider i.e. aws. azure
 provider "aws" {
@@ -103,23 +76,3 @@ resource "aws_instance" "public-ec2" {
 
   depends_on = [ aws_vpc.main_vpc, aws_internet_gateway.igw ]
 }
-
-output "ec2-public-ip" {
-  value = aws_instance.public-ec2.public_ip
-}
-output "igw_id" {
-  value = aws_internet_gateway.igw.id
-}
-output "vpc_id" {
-  value = aws_vpc.main_vpc.id
-}
-output "vpc_arn" {
-  value = aws_vpc.main_vpc.arn
-}
-output "vpc_cidr" {
-  value = aws_vpc.main_vpc.cidr_block
-}
-output "subnet_public_id" {
-  value = aws_subnet.public.id
-}
-
